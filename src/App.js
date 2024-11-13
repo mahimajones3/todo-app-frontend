@@ -1,24 +1,52 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import Auth from './components/Auth';
+import TodoList from './components/TodoList';
+import Profile from './components/Profile';
 
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
+
+  const handleAuth = () => {
+    setIsAuthenticated(true);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setIsAuthenticated(false);
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <div>
+        <nav>
+          {isAuthenticated ? (
+            <>
+              <button onClick={() => handleLogout()}>Logout</button>
+              <a href="/todos">Todos</a>
+              <a href="/profile">Profile</a>
+            </>
+          ) : (
+            <a href="/auth">Login / Signup</a>
+          )}
+        </nav>
+        <Routes>
+          <Route
+            path="/auth"
+            element={!isAuthenticated ? <Auth onAuth={handleAuth} /> : <Navigate to="/todos" />}
+          />
+          <Route
+            path="/todos"
+            element={isAuthenticated ? <TodoList /> : <Navigate to="/auth" />}
+          />
+          <Route
+            path="/profile"
+            element={isAuthenticated ? <Profile /> : <Navigate to="/auth" />}
+          />
+          <Route path="*" element={<Navigate to={isAuthenticated ? "/todos" : "/auth"} />} />
+        </Routes>
+      </div>
+    </Router>
   );
 }
 
